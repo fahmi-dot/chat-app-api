@@ -11,5 +11,5 @@ public interface ChatService {
 
     List<MessageResponse> getMessages(String roomId);
 
-    MessageResponse sendMessage(String roomId, MessageRequest request);
+    MessageResponse sendMessage(String roomId, String usnSender, MessageRequest request);
 }

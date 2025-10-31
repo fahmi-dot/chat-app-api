@@ -55,9 +55,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageResponse sendMessage(String roomId, MessageRequest request) {
-        String username = tokenHolder.getUsername();
-        User sender = userService.findByUsername(username);
+    public MessageResponse sendMessage(String roomId, String usnSender, MessageRequest request) {
+        User sender = userService.findByUsername(usnSender);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found."));
         Message message = Message.builder()

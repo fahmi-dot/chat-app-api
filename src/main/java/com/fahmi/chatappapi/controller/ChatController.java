@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -39,8 +40,8 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/{roomId}")
-    public void sendMessage(@DestinationVariable String roomId, MessageRequest request) {
-        MessageResponse response = chatService.sendMessage(roomId, request);
+    public void sendMessage(@DestinationVariable String roomId, MessageRequest request, Principal principal) {
+        MessageResponse response = chatService.sendMessage(roomId, principal.getName(), request);
 
         messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
     }
