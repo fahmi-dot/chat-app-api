@@ -1,7 +1,9 @@
 package com.fahmi.chatappapi.service.impl;
 
+import com.fahmi.chatappapi.dto.request.TokenRequest;
 import com.fahmi.chatappapi.dto.request.UserLoginRequest;
 import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
+import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
 import com.fahmi.chatappapi.entity.User;
 import com.fahmi.chatappapi.mapper.UserMapper;
@@ -40,14 +42,34 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Username and password is required.");
         }
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Username not found."));
+                .orElseThrow(() -> new RuntimeException("User not found."));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email or password is incorrect.");
         }
         String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+        TokenResponse tokenResponse = TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
 
         return UserLoginResponse.builder()
+                .user(UserMapper.toResponse(user))
+                .tokens(tokenResponse)
+                .build();
+    }
+
+    @Override
+    public TokenResponse refreshToken(TokenRequest request) {
+        String username = jwtUtil.extractUsername(request.getRefreshToken());
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        return TokenResponse.builder()
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 }

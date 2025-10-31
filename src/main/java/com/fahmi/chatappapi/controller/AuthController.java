@@ -1,10 +1,11 @@
 package com.fahmi.chatappapi.controller;
 
 import com.fahmi.chatappapi.constant.Endpoint;
+import com.fahmi.chatappapi.dto.request.TokenRequest;
 import com.fahmi.chatappapi.dto.request.UserLoginRequest;
 import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
+import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
-import com.fahmi.chatappapi.dto.response.UserResponse;
 import com.fahmi.chatappapi.service.AuthService;
 import com.fahmi.chatappapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,12 @@ public class AuthController {
         UserLoginResponse response = authService.login(request);
 
         return ResponseUtil.response(HttpStatus.OK, "User logged in successfully", response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRequest request) {
+        TokenResponse response = authService.refreshToken(request);
+
+        return ResponseUtil.response(HttpStatus.OK, "Refresh token successfully.", response);
     }
 }
