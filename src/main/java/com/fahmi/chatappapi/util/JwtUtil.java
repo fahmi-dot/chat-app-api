@@ -28,6 +28,17 @@ public class JwtUtil {
                 .sign(Algorithm.HMAC256(jwtConfig.getSecret()));
     }
 
+    public String generateRefreshToken(User user) {
+        return JWT.create()
+                .withSubject(user.getUsername())
+                .withClaim("role", user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()))
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + jwtConfig.getRefreshExpirationMs()))
+                .sign(Algorithm.HMAC256(jwtConfig.getSecret()));
+    }
+
     public boolean verifyToken(String token) {
         try {
             JWT.require(Algorithm.HMAC256(jwtConfig.getSecret())).build().verify(token);
