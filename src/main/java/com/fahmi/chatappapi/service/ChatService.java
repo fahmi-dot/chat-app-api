@@ -7,6 +7,8 @@ import com.fahmi.chatappapi.dto.response.RoomResponse;
 import java.util.List;
 
 public interface ChatService {
+    List<RoomResponse> getChatList();
+
     RoomResponse startChat(String targetUsername);
 
     List<MessageResponse> getMessages(String roomId);

@@ -25,6 +25,13 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
 
+    @GetMapping("/list")
+    public ResponseEntity<?> getChatList() {
+        List<RoomResponse> response = chatService.getChatList();
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
+    }
+
     @PostMapping("/start")
     public ResponseEntity<?> startChat(@RequestParam String username) {
         RoomResponse response = chatService.startChat(username);

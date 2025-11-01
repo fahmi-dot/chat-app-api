@@ -30,6 +30,17 @@ public class ChatServiceImpl implements ChatService {
     private final TokenHolder tokenHolder;
 
     @Override
+    public List<RoomResponse> getChatList() {
+        String username = tokenHolder.getUsername();
+        User currentUser = userService.findByUsername(username);
+
+        return roomRepository.findAll().stream()
+                .filter(r -> r.getParticipants().contains(currentUser))
+                .map(RoomMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public RoomResponse startChat(String targetUsername) {
         String currentUsername = tokenHolder.getUsername();
         User currentUser = userService.findByUsername(currentUsername);

@@ -7,7 +7,11 @@ public class RoomMapper {
     public static RoomResponse toResponse(Room room) {
         return RoomResponse.builder()
                 .id(room.getId())
-                .participants(room.getParticipants())
+                .participants(
+                        room.getParticipants().stream()
+                                .map(UserMapper::toResponse)
+                                .toList()
+                )
                 .build();
     }
 }
