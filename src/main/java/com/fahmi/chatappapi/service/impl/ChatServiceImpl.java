@@ -41,21 +41,34 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public RoomResponse startChat(String targetUsername) {
+    public String getRoomId(String targetUsername) {
         String currentUsername = tokenHolder.getUsername();
         User currentUser = userService.findByUsername(currentUsername);
         User targetUser = userService.findByUsername(targetUsername);
         String roomKey = generateRoomKey(currentUser.getPhoneNumber(), targetUser.getPhoneNumber());
+
         Room room = roomRepository.findByRoomKey(roomKey)
-                .orElseGet(() -> {
-                    Room newRoom = new Room();
-                    newRoom.setRoomKey(roomKey);
-                    newRoom.setParticipants(List.of(currentUser, targetUser));
+                .orElse(null);
 
-                    return roomRepository.save(newRoom);
-                });
+        return (room != null)
+                ? room.getId()
+                : null;
+    }
 
-        return RoomMapper.toResponse(room);
+    @Override
+    public String createRoom(String targetUsername) {
+        String currentUsername = tokenHolder.getUsername();
+        User currentUser = userService.findByUsername(currentUsername);
+        User targetUser = userService.findByUsername(targetUsername);
+        String roomKey = generateRoomKey(currentUser.getPhoneNumber(), targetUser.getPhoneNumber());
+
+        Room newRoom = Room.builder()
+                .roomKey(roomKey)
+                .participants(List.of(currentUser, targetUser))
+                .build();
+        roomRepository.save(newRoom);
+
+        return newRoom.getId();
     }
 
     @Override

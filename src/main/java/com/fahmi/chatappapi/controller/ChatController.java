@@ -32,13 +32,6 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
-    @PostMapping("/start")
-    public ResponseEntity<?> startChat(@RequestParam String username) {
-        RoomResponse response = chatService.startChat(username);
-
-        return ResponseUtil.response(HttpStatus.OK, "Chat started.", response);
-    }
-
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<?> getMessages(@PathVariable String roomId) {
         List<MessageResponse> responses = chatService.getMessages(roomId);
@@ -52,12 +45,21 @@ public class ChatController {
 
         MessageResponse response;
         if (roomId == null || roomId.isEmpty()) {
-            roomId = chatService.startChat(principal.getName()).getId();
-            response = chatService.sendMessage(roomId, principal.getName(), request);
+            roomId = chatService.getRoomId(request.getReceiver());
+            if (roomId == null) {
+                roomId = chatService.createRoom(request.getReceiver());
+                response = chatService.sendMessage(roomId, principal.getName(), request);
+                response.setType("new_room");
 
-            messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
+                messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
+                messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
+
+                return;
+            }
         }
+
         response = chatService.sendMessage(roomId, principal.getName(), request);
+        response.setType("message");
 
         messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
     }
