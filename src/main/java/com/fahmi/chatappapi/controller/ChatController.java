@@ -9,8 +9,8 @@ import com.fahmi.chatappapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,9 +46,18 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "All messages retrieved successfully.", responses);
     }
 
-    @MessageMapping("/chat/{roomId}")
-    public void sendMessage(@DestinationVariable String roomId, MessageRequest request, Principal principal) {
-        MessageResponse response = chatService.sendMessage(roomId, principal.getName(), request);
+    @MessageMapping("/chat/send")
+    public void sendMessage(@Payload MessageRequest request, Principal principal) {
+        String roomId = request.getRoomId();
+
+        MessageResponse response;
+        if (roomId == null || roomId.isEmpty()) {
+            roomId = chatService.startChat(principal.getName()).getId();
+            response = chatService.sendMessage(roomId, principal.getName(), request);
+
+            messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
+        }
+        response = chatService.sendMessage(roomId, principal.getName(), request);
 
         messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
     }

@@ -51,6 +51,7 @@ public class ChatServiceImpl implements ChatService {
                     Room newRoom = new Room();
                     newRoom.setRoomKey(roomKey);
                     newRoom.setParticipants(List.of(currentUser, targetUser));
+
                     return roomRepository.save(newRoom);
                 });
 
