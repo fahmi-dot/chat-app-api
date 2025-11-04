@@ -34,10 +34,23 @@ public class ChatServiceImpl implements ChatService {
         String username = tokenHolder.getUsername();
         User currentUser = userService.findByUsername(username);
 
-        return roomRepository.findAll().stream()
-                .filter(r -> r.getParticipants().contains(currentUser))
-                .map(RoomMapper::toResponse)
-                .toList();
+        List<Room> rooms = roomRepository.findByParticipantsContaining(currentUser);
+
+        return rooms.stream().map(room -> {
+                Message lastMessage = messageRepository
+                        .findTopByRoomIdOrderBySentAtDesc(room.getId());
+                Integer unreadMessagesCount = messageRepository
+                        .countByRoomIdAndSenderAndIsReadFalse(room.getId(), currentUser);
+                RoomResponse response = RoomMapper.toResponse(room);
+                if (lastMessage != null) {
+                    response.setLastMessage(lastMessage.getContent());
+                    response.setLastMessageSentAt(lastMessage.getSentAt());
+                }
+
+                response.setUnreadMessagesCount(unreadMessagesCount);
+
+                return response;
+        }).toList();
     }
 
     @Override
@@ -87,6 +100,7 @@ public class ChatServiceImpl implements ChatService {
         Message message = Message.builder()
                 .content(request.getContent())
                 .sentAt(LocalDateTime.now())
+                .isRead(false)
                 .room(room)
                 .sender(sender)
                 .build();

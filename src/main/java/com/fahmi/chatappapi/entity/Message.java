@@ -25,6 +25,9 @@ public class Message {
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
 
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead;
+
     @ManyToOne
     private Room room;
 

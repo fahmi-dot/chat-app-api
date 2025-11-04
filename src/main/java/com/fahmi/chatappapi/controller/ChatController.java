@@ -32,6 +32,13 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
+    @PostMapping("/start")
+    public ResponseEntity<?> startChat(@RequestParam String username) {
+        String response = chatService.createRoom(username);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat started.", response);
+    }
+
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<?> getMessages(@PathVariable String roomId) {
         List<MessageResponse> responses = chatService.getMessages(roomId);
