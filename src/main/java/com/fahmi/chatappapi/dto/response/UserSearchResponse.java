@@ -9,5 +9,4 @@ public class UserSearchResponse {
     private String username;
     private String displayName;
     private String avatarUrl;
-    private String bio;
 }

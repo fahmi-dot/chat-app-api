@@ -33,7 +33,6 @@ public class UserMapper {
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
                 .avatarUrl(user.getAvatarUrl())
-                .bio(user.getBio())
                 .build();
     }
 }
