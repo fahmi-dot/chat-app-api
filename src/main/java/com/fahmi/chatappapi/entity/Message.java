@@ -29,8 +29,10 @@ public class Message {
     private boolean isRead;
 
     @ManyToOne
+    @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
     @ManyToOne
+    @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 }

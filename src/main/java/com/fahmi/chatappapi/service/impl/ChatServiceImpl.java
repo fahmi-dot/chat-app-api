@@ -1,6 +1,5 @@
 package com.fahmi.chatappapi.service.impl;
 
-import com.fahmi.chatappapi.dto.request.MessageRequest;
 import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
 import com.fahmi.chatappapi.entity.Message;
@@ -30,27 +29,58 @@ public class ChatServiceImpl implements ChatService {
     private final TokenHolder tokenHolder;
 
     @Override
-    public List<RoomResponse> getChatList() {
+    public List<RoomResponse> getChatRooms() {
         String username = tokenHolder.getUsername();
         User currentUser = userService.findByUsername(username);
 
         List<Room> rooms = roomRepository.findByParticipantsContaining(currentUser);
 
         return rooms.stream().map(room -> {
-                Message lastMessage = messageRepository
-                        .findTopByRoomIdOrderBySentAtDesc(room.getId());
-                Integer unreadMessagesCount = messageRepository
-                        .countByRoomIdAndSenderAndIsReadFalse(room.getId(), currentUser);
-                RoomResponse response = RoomMapper.toResponse(room);
-                if (lastMessage != null) {
-                    response.setLastMessage(lastMessage.getContent());
-                    response.setLastMessageSentAt(lastMessage.getSentAt());
-                }
+            Message lastMessage = messageRepository.findTopByRoomIdOrderBySentAtDesc(room.getId());
+            Integer unreadMessagesCount = messageRepository.countByRoomIdAndSenderAndIsReadFalse(room.getId(), currentUser);
+            RoomResponse response = RoomMapper.toResponse(room);
+            if (lastMessage != null) {
+                response.setLastMessage(lastMessage.getContent());
+                response.setLastMessageSentAt(lastMessage.getSentAt());
+            }
 
-                response.setUnreadMessagesCount(unreadMessagesCount);
+            response.setUnreadMessagesCount(unreadMessagesCount);
 
-                return response;
+            return response;
         }).toList();
+    }
+
+    @Override
+    public RoomResponse getChatRoomDetail(String roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found."));
+
+        return RoomMapper.toResponse(room);
+    }
+
+    @Override
+    public List<MessageResponse> getChatMessages(String roomId) {
+        return messageRepository.findAll().stream()
+                .filter((m) -> m.getRoom().getId().equals(roomId))
+                .map(MessageMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public MessageResponse sendMessage(String roomId, String content) {
+        String currentUsername = tokenHolder.getUsername();
+        User currentUser = userService.findByUsername(currentUsername);
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found."));
+        Message message = Message.builder()
+                .content(content)
+                .sentAt(LocalDateTime.now())
+                .isRead(false)
+                .room(room)
+                .sender(currentUser)
+                .build();
+        messageRepository.save(message);
+
+        return MessageMapper.toResponse(message);
     }
 
     @Override
@@ -60,12 +90,9 @@ public class ChatServiceImpl implements ChatService {
         User targetUser = userService.findByUsername(targetUsername);
         String roomKey = generateRoomKey(currentUser.getPhoneNumber(), targetUser.getPhoneNumber());
 
-        Room room = roomRepository.findByRoomKey(roomKey)
-                .orElse(null);
+        Room room = roomRepository.findByRoomKey(roomKey).orElse(null);
 
-        return (room != null)
-                ? room.getId()
-                : null;
+        return (room != null) ? room.getId() : null;
     }
 
     @Override
@@ -84,35 +111,8 @@ public class ChatServiceImpl implements ChatService {
         return newRoom.getId();
     }
 
-    @Override
-    public List<MessageResponse> getMessages(String roomId) {
-        return messageRepository.findAll().stream()
-                .filter((m) -> m.getRoom().getId().equals(roomId))
-                .map(MessageMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public MessageResponse sendMessage(String roomId, String usnSender, MessageRequest request) {
-        User sender = userService.findByUsername(usnSender);
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Room not found."));
-        Message message = Message.builder()
-                .content(request.getContent())
-                .sentAt(LocalDateTime.now())
-                .isRead(false)
-                .room(room)
-                .sender(sender)
-                .build();
-        messageRepository.save(message);
-
-        return MessageMapper.toResponse(message);
-    }
-
     public String generateRoomKey(String phoneNumber1, String phoneNumber2) {
-        List<String> sorted = Stream.of(phoneNumber1, phoneNumber2)
-                .sorted()
-                .toList();
+        List<String> sorted = Stream.of(phoneNumber1, phoneNumber2).sorted().toList();
 
         return sorted.get(0) + "_" + sorted.get(1);
     }

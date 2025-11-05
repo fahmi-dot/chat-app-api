@@ -7,13 +7,15 @@ import com.fahmi.chatappapi.dto.response.RoomResponse;
 import java.util.List;
 
 public interface ChatService {
-    List<RoomResponse> getChatList();
+    List<RoomResponse> getChatRooms();
+
+    RoomResponse getChatRoomDetail(String roomId);
+
+    List<MessageResponse> getChatMessages(String roomId);
+
+    MessageResponse sendMessage(String roomId, String content);
 
     String getRoomId(String targetUsername);
 
     String createRoom(String targetUsername);
-
-    List<MessageResponse> getMessages(String roomId);
-
-    MessageResponse sendMessage(String roomId, String usnSender, MessageRequest request);
 }

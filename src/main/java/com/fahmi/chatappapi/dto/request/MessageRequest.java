@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class MessageRequest {
     private String roomId;
-    private String receiver;
     private String content;
+    private String receiver;
 }

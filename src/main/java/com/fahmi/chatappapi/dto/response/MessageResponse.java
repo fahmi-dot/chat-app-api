@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 @Builder
 public class MessageResponse {
     private String id;
+    private String roomId;
     private String content;
     private LocalDateTime sentAt;
-    private boolean isRead;
     private String senderId;
     private String type;
 }

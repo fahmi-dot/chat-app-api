@@ -7,9 +7,9 @@ public class MessageMapper {
     public static MessageResponse toResponse(Message message) {
         return MessageResponse.builder()
                 .id(message.getId())
+                .roomId(message.getRoom().getId())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
-                .isRead(message.isRead())
                 .senderId(message.getSender().getId())
                 .build();
     }
