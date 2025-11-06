@@ -9,11 +9,13 @@ import com.fahmi.chatappapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -42,11 +44,7 @@ public class ChatController {
     public ResponseEntity<?> getChatRoomDetail(@PathVariable String roomId) {
         RoomResponse response = chatService.getChatRoomDetail(roomId);
 
-        return ResponseUtil.response(
-                HttpStatus.OK,
-                "Chat room detail retrieved successfully.",
-                response
-        );
+        return ResponseUtil.response(HttpStatus.OK, "Chat room detail retrieved successfully.", response);
     }
 
     @GetMapping("/room/{roomId}/messages")
@@ -57,15 +55,15 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/send")
-    public void sendMessage(@Payload MessageRequest request) {
+    public void sendMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {
         String roomId = request.getRoomId();
 
         MessageResponse response;
         if (roomId == null || roomId.isEmpty()) {
-            roomId = chatService.getRoomId(request.getReceiver());
+            roomId = chatService.getRoomId(principal.getName(), request.getReceiver());
             if (roomId == null) {
-                roomId = chatService.createRoom(request.getReceiver());
-                response = chatService.sendMessage(roomId, request.getContent());
+                roomId = chatService.createRoom(principal.getName(), request.getReceiver());
+                response = chatService.sendMessage(roomId, request.getContent(), principal.getName());
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -74,7 +72,7 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendMessage(roomId, request.getContent());
+        response = chatService.sendMessage(roomId, request.getContent(), principal.getName());
         response.setType("new_message");
         messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
     }

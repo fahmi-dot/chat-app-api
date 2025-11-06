@@ -13,9 +13,9 @@ public interface ChatService {
 
     List<MessageResponse> getChatMessages(String roomId);
 
-    MessageResponse sendMessage(String roomId, String content);
+    MessageResponse sendMessage(String roomId, String content, String currentUsername);
 
-    String getRoomId(String targetUsername);
+    String getRoomId(String currentUsername, String targetUsername);
 
-    String createRoom(String targetUsername);
+    String createRoom(String currentUsername, String targetUsername);
 }

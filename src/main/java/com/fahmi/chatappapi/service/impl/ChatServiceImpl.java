@@ -37,7 +37,7 @@ public class ChatServiceImpl implements ChatService {
 
         return rooms.stream().map(room -> {
             Message lastMessage = messageRepository.findTopByRoomIdOrderBySentAtDesc(room.getId());
-            Integer unreadMessagesCount = messageRepository.countByRoomIdAndSenderAndIsReadFalse(room.getId(), currentUser);
+            Integer unreadMessagesCount = messageRepository.countByRoomIdAndSenderNotAndIsReadFalse(room.getId(), currentUser);
             RoomResponse response = RoomMapper.toResponse(room);
             if (lastMessage != null) {
                 response.setLastMessage(lastMessage.getContent());
@@ -60,15 +60,13 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<MessageResponse> getChatMessages(String roomId) {
-        return messageRepository.findAll().stream()
-                .filter((m) -> m.getRoom().getId().equals(roomId))
+        return messageRepository.findByRoomIdOrderBySentAtDesc(roomId).stream()
                 .map(MessageMapper::toResponse)
                 .toList();
     }
 
     @Override
-    public MessageResponse sendMessage(String roomId, String content) {
-        String currentUsername = tokenHolder.getUsername();
+    public MessageResponse sendMessage(String roomId, String content, String currentUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found."));
         Message message = Message.builder()
@@ -84,8 +82,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public String getRoomId(String targetUsername) {
-        String currentUsername = tokenHolder.getUsername();
+    public String getRoomId(String currentUsername, String targetUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         User targetUser = userService.findByUsername(targetUsername);
         String roomKey = generateRoomKey(currentUser.getPhoneNumber(), targetUser.getPhoneNumber());
@@ -96,8 +93,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public String createRoom(String targetUsername) {
-        String currentUsername = tokenHolder.getUsername();
+    public String createRoom(String currentUsername, String targetUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         User targetUser = userService.findByUsername(targetUsername);
         String roomKey = generateRoomKey(currentUser.getPhoneNumber(), targetUser.getPhoneNumber());
