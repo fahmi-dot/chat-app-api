@@ -6,6 +6,7 @@ import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
 import com.fahmi.chatappapi.service.ChatService;
 import com.fahmi.chatappapi.util.ResponseUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,26 +34,34 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat started.", response);
     }*/
 
-    @GetMapping("/room")
+    @GetMapping("/rooms")
     public ResponseEntity<?> getChatRooms() {
         List<RoomResponse> response = chatService.getChatRooms();
 
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
-    @GetMapping("/room/{roomId}")
+    @GetMapping("/rooms/{roomId}")
     public ResponseEntity<?> getChatRoomDetail(@PathVariable String roomId) {
         RoomResponse response = chatService.getChatRoomDetail(roomId);
 
         return ResponseUtil.response(HttpStatus.OK, "Chat room detail retrieved successfully.", response);
     }
 
-    @GetMapping("/room/{roomId}/messages")
+    @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<?> getChatMessages(@PathVariable String roomId) {
         List<MessageResponse> responses = chatService.getChatMessages(roomId);
 
         return ResponseUtil.response(HttpStatus.OK, "Chat room messages retrieved successfully.", responses);
     }
+
+    @PatchMapping("/rooms/{roomId}/messages")
+    public ResponseEntity<?> markAsRead(@PathVariable String roomId) {
+        chatService.markAsRead(roomId);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat room messages marked as read successfully.", HttpStatus.OK);
+    }
+
 
     @MessageMapping("/chat/send")
     public void sendMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {

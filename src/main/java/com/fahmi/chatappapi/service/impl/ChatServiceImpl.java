@@ -32,7 +32,6 @@ public class ChatServiceImpl implements ChatService {
     public List<RoomResponse> getChatRooms() {
         String username = tokenHolder.getUsername();
         User currentUser = userService.findByUsername(username);
-
         List<Room> rooms = roomRepository.findByParticipantsContaining(currentUser);
 
         return rooms.stream().map(room -> {
@@ -63,6 +62,16 @@ public class ChatServiceImpl implements ChatService {
         return messageRepository.findByRoomIdOrderBySentAtDesc(roomId).stream()
                 .map(MessageMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public void markAsRead(String roomId) {
+        String username = tokenHolder.getUsername();
+        User currentUser = userService.findByUsername(username);
+
+        messageRepository.findByRoomIdAndSenderNotAndIsReadFalse(roomId, currentUser).stream()
+                .peek(m -> m.setRead(true))
+                .forEach(messageRepository::save);
     }
 
     @Override

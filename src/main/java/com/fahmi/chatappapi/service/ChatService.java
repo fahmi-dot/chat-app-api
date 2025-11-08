@@ -13,6 +13,8 @@ public interface ChatService {
 
     List<MessageResponse> getChatMessages(String roomId);
 
+    void markAsRead(String roomId);
+
     MessageResponse sendMessage(String roomId, String content, String currentUsername);
 
     String getRoomId(String currentUsername, String targetUsername);

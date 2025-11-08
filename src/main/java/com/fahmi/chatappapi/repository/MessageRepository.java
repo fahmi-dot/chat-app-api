@@ -15,4 +15,6 @@ public interface MessageRepository extends JpaRepository<Message, String> {
     Message findTopByRoomIdOrderBySentAtDesc(String roomId);
 
     Integer countByRoomIdAndSenderNotAndIsReadFalse(String roomId, User sender);
+
+    List<Message> findByRoomIdAndSenderNotAndIsReadFalse(String roomId, User sender);
 }
