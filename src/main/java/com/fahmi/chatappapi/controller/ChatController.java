@@ -6,7 +6,6 @@ import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
 import com.fahmi.chatappapi.service.ChatService;
 import com.fahmi.chatappapi.util.ResponseUtil;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,23 +47,8 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat room detail retrieved successfully.", response);
     }
 
-    @GetMapping("/rooms/{roomId}/messages")
-    public ResponseEntity<?> getChatMessages(@PathVariable String roomId) {
-        List<MessageResponse> responses = chatService.getChatMessages(roomId);
-
-        return ResponseUtil.response(HttpStatus.OK, "Chat room messages retrieved successfully.", responses);
-    }
-
-    @PatchMapping("/rooms/{roomId}/messages")
-    public ResponseEntity<?> markAsRead(@PathVariable String roomId) {
-        chatService.markAsRead(roomId);
-
-        return ResponseUtil.response(HttpStatus.OK, "Chat room messages marked as read successfully.", HttpStatus.OK);
-    }
-
-
     @MessageMapping("/chat/send")
-    public void sendMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {
+    public void sendChatMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {
         String roomId = request.getRoomId();
 
         MessageResponse response;
@@ -72,7 +56,7 @@ public class ChatController {
             roomId = chatService.getRoomId(principal.getName(), request.getReceiver());
             if (roomId == null) {
                 roomId = chatService.createRoom(principal.getName(), request.getReceiver());
-                response = chatService.sendMessage(roomId, request.getContent(), principal.getName());
+                response = chatService.sendChatMessage(roomId, request.getContent(), principal.getName());
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -81,8 +65,29 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendMessage(roomId, request.getContent(), principal.getName());
+        response = chatService.sendChatMessage(roomId, request.getContent(), principal.getName());
         response.setType("new_message");
         messagingTemplate.convertAndSend("/topic/messages/" + roomId, response);
+    }
+
+    @GetMapping("/rooms/{roomId}/messages")
+    public ResponseEntity<?> getChatMessages(@PathVariable String roomId) {
+        List<MessageResponse> responses = chatService.getChatMessages(roomId);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat messages retrieved successfully.", responses);
+    }
+
+    @PatchMapping("/rooms/{roomId}/messages")
+    public ResponseEntity<?> markAsRead(@PathVariable String roomId) {
+        chatService.markAsRead(roomId);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat messages marked as read successfully.", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/rooms/messages/{messageId}")
+    public ResponseEntity<?> deleteChatMessage(@PathVariable String messageId) {
+        chatService.deleteChatMessage(messageId);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat message deleted successfully.", HttpStatus.OK);
     }
 }

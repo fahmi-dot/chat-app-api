@@ -58,6 +58,22 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public MessageResponse sendChatMessage(String roomId, String content, String currentUsername) {
+        User currentUser = userService.findByUsername(currentUsername);
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found."));
+        Message message = Message.builder()
+                .content(content)
+                .sentAt(LocalDateTime.now())
+                .isRead(false)
+                .room(room)
+                .sender(currentUser)
+                .build();
+        messageRepository.save(message);
+
+        return MessageMapper.toResponse(message);
+    }
+
+    @Override
     public List<MessageResponse> getChatMessages(String roomId) {
         return messageRepository.findByRoomIdOrderBySentAtDesc(roomId).stream()
                 .map(MessageMapper::toResponse)
@@ -75,19 +91,11 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageResponse sendMessage(String roomId, String content, String currentUsername) {
-        User currentUser = userService.findByUsername(currentUsername);
-        Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found."));
-        Message message = Message.builder()
-                .content(content)
-                .sentAt(LocalDateTime.now())
-                .isRead(false)
-                .room(room)
-                .sender(currentUser)
-                .build();
-        messageRepository.save(message);
+    public void deleteChatMessage(String messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found."));
 
-        return MessageMapper.toResponse(message);
+        messageRepository.delete(message);
     }
 
     @Override

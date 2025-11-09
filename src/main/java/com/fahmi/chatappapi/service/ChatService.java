@@ -11,11 +11,13 @@ public interface ChatService {
 
     RoomResponse getChatRoomDetail(String roomId);
 
+    MessageResponse sendChatMessage(String roomId, String content, String currentUsername);
+
     List<MessageResponse> getChatMessages(String roomId);
 
     void markAsRead(String roomId);
 
-    MessageResponse sendMessage(String roomId, String content, String currentUsername);
+    void deleteChatMessage(String messageId);
 
     String getRoomId(String currentUsername, String targetUsername);
 
