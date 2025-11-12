@@ -10,6 +10,7 @@ public class MessageMapper {
                 .roomId(message.getRoom().getId())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
+                .isRead(message.isRead())
                 .senderId(message.getSender().getId())
                 .build();
     }
