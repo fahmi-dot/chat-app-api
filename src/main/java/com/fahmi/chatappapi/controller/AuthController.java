@@ -4,6 +4,7 @@ import com.fahmi.chatappapi.constant.Endpoint;
 import com.fahmi.chatappapi.dto.request.TokenRequest;
 import com.fahmi.chatappapi.dto.request.UserLoginRequest;
 import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
+import com.fahmi.chatappapi.dto.request.UserVerifyRequest;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
 import com.fahmi.chatappapi.service.AuthService;
@@ -27,7 +28,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody UserRegisterRequest request) {
         authService.register(request);
 
-        return ResponseUtil.response(HttpStatus.CREATED, "User registered successfully.", null);
+        return ResponseUtil.response(HttpStatus.CREATED, "User registered successfully.", HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
@@ -35,6 +36,13 @@ public class AuthController {
         UserLoginResponse response = authService.login(request);
 
         return ResponseUtil.response(HttpStatus.OK, "User logged in successfully", response);
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<?> verify(@RequestBody UserVerifyRequest request) {
+        authService.verify(request);
+
+        return ResponseUtil.response(HttpStatus.OK, "User verified successfully.", HttpStatus.OK);
     }
 
     @PostMapping("/refresh")

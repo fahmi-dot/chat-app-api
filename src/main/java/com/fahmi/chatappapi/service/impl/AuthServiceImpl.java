@@ -3,6 +3,7 @@ package com.fahmi.chatappapi.service.impl;
 import com.fahmi.chatappapi.dto.request.TokenRequest;
 import com.fahmi.chatappapi.dto.request.UserLoginRequest;
 import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
+import com.fahmi.chatappapi.dto.request.UserVerifyRequest;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
 import com.fahmi.chatappapi.entity.User;
@@ -13,6 +14,9 @@ import com.fahmi.chatappapi.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +34,11 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new RuntimeException("Phone number is already registered.");
         }
+
+        String code = String.format("%06d", new Random().nextInt(999999));
         User user = UserMapper.fromRegisterRequest(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setVerificationCode(code);
         userRepository.save(user);
     }
 
@@ -57,6 +64,24 @@ public class AuthServiceImpl implements AuthService {
                 .user(UserMapper.toResponse(user))
                 .tokens(tokenResponse)
                 .build();
+    }
+
+    @Override
+    public void verify(UserVerifyRequest request) {
+        User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        if (user.getCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Verification code expired.");
+        }
+        if (!user.getVerificationCode().equals(request.getVerificationCode())) {
+            throw new RuntimeException("Verification code is incorrect.");
+        }
+
+        user.setVerified(true);
+        user.setVerificationCode(null);
+        user.setCodeExpiresAt(null);
+        userRepository.save(user);
     }
 
     @Override
