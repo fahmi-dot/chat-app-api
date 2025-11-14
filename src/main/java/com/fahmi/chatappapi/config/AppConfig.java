@@ -5,10 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "jwt")
+@ConfigurationProperties(prefix = "app")
 @Data
-public class JwtConfig {
-    private String secret;
-    private long accessExpirationMs;
-    private long refreshExpirationMs;
+public class AppConfig {
+    private String defaultAvatarUrl;
 }
