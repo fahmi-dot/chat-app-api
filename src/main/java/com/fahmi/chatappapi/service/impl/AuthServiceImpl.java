@@ -1,5 +1,6 @@
 package com.fahmi.chatappapi.service.impl;
 
+import com.fahmi.chatappapi.config.AppConfig;
 import com.fahmi.chatappapi.dto.request.TokenRequest;
 import com.fahmi.chatappapi.dto.request.UserLoginRequest;
 import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
@@ -10,6 +11,7 @@ import com.fahmi.chatappapi.entity.User;
 import com.fahmi.chatappapi.mapper.UserMapper;
 import com.fahmi.chatappapi.repository.UserRepository;
 import com.fahmi.chatappapi.service.AuthService;
+import com.fahmi.chatappapi.service.EmailService;
 import com.fahmi.chatappapi.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,24 +24,40 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private final AppConfig appConfig;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
     @Override
     public void register(UserRegisterRequest request) {
+        String code = String.format("%06d", new Random().nextInt(999999));
+        User user;
+
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username is already taken.");
         }
+
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number is already registered.");
+            user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                    .orElseThrow(() -> new RuntimeException("Phone number is not found."));
+            if (user.isVerified()) {
+                throw new RuntimeException("Phone number is already registered.");
+            }
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+        } else {
+            user = UserMapper.fromRegisterRequest(request);
         }
 
-        String code = String.format("%06d", new Random().nextInt(999999));
-        User user = UserMapper.fromRegisterRequest(request);
+        user.setAvatarUrl(appConfig.getDefaultAvatarUrl());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerificationCode(code);
+        user.setCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
+
+        emailService.sendVerificationCode(user.getEmail(), code);
     }
 
     @Override
@@ -48,11 +66,14 @@ public class AuthServiceImpl implements AuthService {
                 request.getPassword() == null || request.getPassword().isEmpty()) {
             throw new RuntimeException("Username and password is required.");
         }
+
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found."));
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email or password is incorrect.");
         }
+
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
         TokenResponse tokenResponse = TokenResponse.builder()
@@ -74,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
         if (user.getCodeExpiresAt().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Verification code expired.");
         }
+
         if (!user.getVerificationCode().equals(request.getVerificationCode())) {
             throw new RuntimeException("Verification code is incorrect.");
         }

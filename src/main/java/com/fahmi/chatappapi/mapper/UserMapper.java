@@ -14,11 +14,9 @@ public class UserMapper {
                 .displayName(request.getUsername())
                 .phoneNumber(request.getPhoneNumber())
                 .email(request.getEmail())
-                .avatarUrl("url")
                 .password(request.getPassword())
                 .role("USER")
                 .isVerified(false)
-                .codeExpiresAt(LocalDateTime.now().plusMinutes(5))
                 .build();
     }
 
