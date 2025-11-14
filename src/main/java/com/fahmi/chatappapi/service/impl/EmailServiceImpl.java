@@ -1,5 +1,6 @@
 package com.fahmi.chatappapi.service.impl;
 
+import com.fahmi.chatappapi.exception.CustomException;
 import com.fahmi.chatappapi.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CustomException.ConflictException(e.getMessage());
         }
     }
 }

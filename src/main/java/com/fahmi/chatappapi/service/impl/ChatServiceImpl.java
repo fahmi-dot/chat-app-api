@@ -5,6 +5,7 @@ import com.fahmi.chatappapi.dto.response.RoomResponse;
 import com.fahmi.chatappapi.entity.Message;
 import com.fahmi.chatappapi.entity.Room;
 import com.fahmi.chatappapi.entity.User;
+import com.fahmi.chatappapi.exception.CustomException;
 import com.fahmi.chatappapi.mapper.MessageMapper;
 import com.fahmi.chatappapi.mapper.RoomMapper;
 import com.fahmi.chatappapi.repository.MessageRepository;
@@ -52,7 +53,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public RoomResponse getChatRoomDetail(String roomId) {
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Room not found."));
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
 
         return RoomMapper.toResponse(room);
     }
@@ -60,7 +61,8 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public MessageResponse sendChatMessage(String roomId, String content, String currentUsername) {
         User currentUser = userService.findByUsername(currentUsername);
-        Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found."));
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
         Message message = Message.builder()
                 .content(content)
                 .sentAt(LocalDateTime.now())
@@ -93,7 +95,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public void deleteChatMessage(String messageId) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found."));
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("Message not found."));
 
         messageRepository.delete(message);
     }

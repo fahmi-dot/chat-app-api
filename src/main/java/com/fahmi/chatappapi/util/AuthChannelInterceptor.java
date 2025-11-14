@@ -1,5 +1,6 @@
 package com.fahmi.chatappapi.util;
 
+import com.fahmi.chatappapi.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -30,10 +31,10 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                     String username = jwtUtil.extractUsername(token);
                     accessor.setUser(new UsernamePasswordAuthenticationToken(username, null, null));
                 } else {
-                    throw new IllegalArgumentException("Invalid JWT token in WebSocket connection.");
+                    throw new CustomException.AuthenticationException("Invalid JWT token in WebSocket connection.");
                 }
             } else {
-                throw new IllegalArgumentException("Missing Authorization header in STOMP CONNECT.");
+                throw new CustomException.AuthenticationException("Missing Authorization header in STOMP CONNECT.");
             }
         }
 

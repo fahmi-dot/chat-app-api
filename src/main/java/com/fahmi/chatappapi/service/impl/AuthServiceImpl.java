@@ -8,6 +8,7 @@ import com.fahmi.chatappapi.dto.request.UserVerifyRequest;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
 import com.fahmi.chatappapi.entity.User;
+import com.fahmi.chatappapi.exception.CustomException;
 import com.fahmi.chatappapi.mapper.UserMapper;
 import com.fahmi.chatappapi.repository.UserRepository;
 import com.fahmi.chatappapi.service.AuthService;
@@ -36,14 +37,14 @@ public class AuthServiceImpl implements AuthService {
         User user;
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username is already taken.");
+            throw new CustomException.ConflictException("Username is already taken.");
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             user = userRepository.findByPhoneNumber(request.getPhoneNumber())
-                    .orElseThrow(() -> new RuntimeException("Phone number is not found."));
+                    .orElseThrow(() -> new CustomException.ResourceNotFoundException("Phone number is not found."));
             if (user.isVerified()) {
-                throw new RuntimeException("Phone number is already registered.");
+                throw new CustomException.ConflictException("Phone number is already registered.");
             }
             user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
@@ -64,14 +65,14 @@ public class AuthServiceImpl implements AuthService {
     public UserLoginResponse login(UserLoginRequest request) {
         if (request.getUsername() == null || request.getUsername().isEmpty() ||
                 request.getPassword() == null || request.getPassword().isEmpty()) {
-            throw new RuntimeException("Username and password is required.");
+            throw new CustomException.BadRequestException("Username and password is required.");
         }
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found."));
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Email or password is incorrect.");
+            throw new CustomException.AuthenticationException("Email or password is incorrect.");
         }
 
         String accessToken = jwtUtil.generateAccessToken(user);
@@ -90,14 +91,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void verify(UserVerifyRequest request) {
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
-                .orElseThrow(() -> new RuntimeException("User not found."));
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
         if (user.getCodeExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Verification code expired.");
+            throw new CustomException.BadRequestException("Verification code expired.");
         }
 
         if (!user.getVerificationCode().equals(request.getVerificationCode())) {
-            throw new RuntimeException("Verification code is incorrect.");
+            throw new CustomException.BadRequestException("Verification code is incorrect.");
         }
 
         user.setVerified(true);
@@ -110,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse refreshToken(TokenRequest request) {
         String username = jwtUtil.extractUsername(request.getRefreshToken());
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found."));
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
