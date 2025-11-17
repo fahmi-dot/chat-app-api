@@ -1,0 +1,7 @@
+-- Username sequence
+CREATE SEQUENCE IF NOT EXISTS username_seq
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO MAXVALUE
+    CACHE 1;
