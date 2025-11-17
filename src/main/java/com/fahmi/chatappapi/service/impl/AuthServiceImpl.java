@@ -33,12 +33,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void register(UserRegisterRequest request) {
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = String.format("%04d", new Random().nextInt(9999));
         User user;
-
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new CustomException.ConflictException("Username is already taken.");
-        }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             user = userRepository.findByPhoneNumber(request.getPhoneNumber())
@@ -46,12 +42,15 @@ public class AuthServiceImpl implements AuthService {
             if (user.isVerified()) {
                 throw new CustomException.ConflictException("Phone number is already registered.");
             }
-            user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
         } else {
             user = UserMapper.fromRegisterRequest(request);
         }
 
+        long number = userRepository.getUsernameNumber();
+
+        user.setUsername("user" + number);
+        user.setDisplayName("user" + number);
         user.setAvatarUrl(appConfig.getDefaultAvatarUrl());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerificationCode(code);
@@ -94,11 +93,11 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
         if (user.getCodeExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new CustomException.BadRequestException("Verification code expired.");
+            throw new CustomException.ConflictException("Verification code has expired.");
         }
 
         if (!user.getVerificationCode().equals(request.getVerificationCode())) {
-            throw new CustomException.BadRequestException("Verification code is incorrect.");
+            throw new CustomException.AuthenticationException("Verification code is incorrect.");
         }
 
         user.setVerified(true);

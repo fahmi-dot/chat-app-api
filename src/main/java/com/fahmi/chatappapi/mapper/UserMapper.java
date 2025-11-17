@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 public class UserMapper {
     public static User fromRegisterRequest(UserRegisterRequest request) {
         return User.builder()
-                .username(request.getUsername())
-                .displayName(request.getUsername())
                 .phoneNumber(request.getPhoneNumber())
                 .email(request.getEmail())
                 .password(request.getPassword())
