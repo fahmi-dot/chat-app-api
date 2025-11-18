@@ -10,10 +10,10 @@ public class TokenHolder {
     private final HttpServletRequest request;
     private final JwtUtil jwtUtil;
 
-    public String getUsername() {
+    public String getId() {
         String authHeader = request.getHeader("Authorization");
         String token = authHeader.substring(7);
 
-        return jwtUtil.extractUsername(token);
+        return jwtUtil.extractId(token);
     }
 }
