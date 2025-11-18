@@ -1,5 +1,6 @@
 package com.fahmi.chatappapi.util;
 
+import com.fahmi.chatappapi.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -29,7 +31,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authHeader = authHeader.substring(7);
 
             if (jwtUtil.verifyToken(authHeader)) {
-                String username = jwtUtil.extractUsername(authHeader);
+                String id = jwtUtil.extractId(authHeader);
+                String username = userService.findById(id).getUsername();
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());

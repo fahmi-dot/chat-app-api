@@ -5,6 +5,7 @@ import com.fahmi.chatappapi.dto.request.MessageRequest;
 import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
 import com.fahmi.chatappapi.service.ChatService;
+import com.fahmi.chatappapi.service.UserService;
 import com.fahmi.chatappapi.util.ResponseUtil;
 import com.fahmi.chatappapi.util.TokenHolder;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
     private final TokenHolder tokenHolder;
-
-    /*@PostMapping("/start")
-    public ResponseEntity<?> startChat(@RequestParam String username) {
-        String response = chatService.createRoom(username);
-
-        return ResponseUtil.response(HttpStatus.OK, "Chat started.", response);
-    }*/
+    private final UserService userService;
 
     @GetMapping("/rooms")
     public ResponseEntity<?> getChatRooms() {
@@ -51,7 +46,8 @@ public class ChatController {
 
     @PostMapping("/send")
     public void sendChatMessage(@RequestBody MessageRequest request) {
-        String username = tokenHolder.getUsername();
+        String id = tokenHolder.getId();
+        String username = userService.findById(id).getUsername();
         String roomId = request.getRoomId();
 
         MessageResponse response;

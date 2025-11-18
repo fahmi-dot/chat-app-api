@@ -1,6 +1,7 @@
 package com.fahmi.chatappapi.util;
 
 import com.fahmi.chatappapi.exception.CustomException;
+import com.fahmi.chatappapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AuthChannelInterceptor implements ChannelInterceptor {
 
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -28,7 +30,8 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                 String token = authHeader.substring(7);
 
                 if (jwtUtil.verifyToken(token)) {
-                    String username = jwtUtil.extractUsername(token);
+                    String id = jwtUtil.extractId(token);
+                    String username = userService.findById(id).getUsername();
                     accessor.setUser(new UsernamePasswordAuthenticationToken(username, null, null));
                 } else {
                     throw new CustomException.AuthenticationException("Invalid JWT token in WebSocket connection.");
