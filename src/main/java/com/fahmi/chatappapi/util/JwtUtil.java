@@ -19,7 +19,7 @@ public class JwtUtil {
 
     public String generateAccessToken(User user) {
         return JWT.create()
-                .withSubject(user.getUsername())
+                .withSubject(user.getId())
                 .withClaim("role", user.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()))
@@ -30,7 +30,7 @@ public class JwtUtil {
 
     public String generateRefreshToken(User user) {
         return JWT.create()
-                .withSubject(user.getUsername())
+                .withSubject(user.getId())
                 .withClaim("role", user.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()))
@@ -48,7 +48,7 @@ public class JwtUtil {
         }
     }
 
-    public String extractUsername(String token) {
+    public String extractId(String token) {
         return JWT.decode(token).getSubject();
     }
 }
