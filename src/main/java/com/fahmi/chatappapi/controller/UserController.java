@@ -1,6 +1,7 @@
 package com.fahmi.chatappapi.controller;
 
 import com.fahmi.chatappapi.constant.Endpoint;
+import com.fahmi.chatappapi.dto.request.UserUpdateRequest;
 import com.fahmi.chatappapi.dto.response.UserResponse;
 import com.fahmi.chatappapi.dto.response.UserSearchResponse;
 import com.fahmi.chatappapi.service.UserService;
@@ -17,11 +18,18 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<?> getMyProfile() {
         UserResponse response = userService.getMyProfile();
 
         return ResponseUtil.response(HttpStatus.OK, "My profile retrieved successfully.", response);
+    }
+
+    @PatchMapping("/{id}/update")
+    public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody UserUpdateRequest request) {
+        userService.updateProfile(id, request);
+
+        return ResponseUtil.response(HttpStatus.OK, "Profile updated successfully.", HttpStatus.OK);
     }
 
     @GetMapping("/search")
