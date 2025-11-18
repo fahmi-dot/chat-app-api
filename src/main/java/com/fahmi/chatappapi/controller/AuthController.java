@@ -1,12 +1,10 @@
 package com.fahmi.chatappapi.controller;
 
 import com.fahmi.chatappapi.constant.Endpoint;
-import com.fahmi.chatappapi.dto.request.TokenRequest;
-import com.fahmi.chatappapi.dto.request.UserLoginRequest;
-import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
-import com.fahmi.chatappapi.dto.request.UserVerifyRequest;
+import com.fahmi.chatappapi.dto.request.*;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
+import com.fahmi.chatappapi.dto.response.UserResponse;
 import com.fahmi.chatappapi.service.AuthService;
 import com.fahmi.chatappapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +38,16 @@ public class AuthController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> verify(@RequestBody UserVerifyRequest request) {
-        authService.verify(request);
+        UserResponse response = authService.verify(request);
 
-        return ResponseUtil.response(HttpStatus.OK, "User verified successfully.", HttpStatus.OK);
+        return ResponseUtil.response(HttpStatus.OK, "User verified successfully.", response);
+    }
+
+    @PostMapping("/resend")
+    public ResponseEntity<?> resendCode(@RequestBody ResendCodeRequest request) {
+        authService.resendCode(request);
+
+        return ResponseUtil.response(HttpStatus.OK, "Resend code successfully.", HttpStatus.OK);
     }
 
     @PostMapping("/refresh")

@@ -1,12 +1,10 @@
 package com.fahmi.chatappapi.service.impl;
 
 import com.fahmi.chatappapi.config.AppConfig;
-import com.fahmi.chatappapi.dto.request.TokenRequest;
-import com.fahmi.chatappapi.dto.request.UserLoginRequest;
-import com.fahmi.chatappapi.dto.request.UserRegisterRequest;
-import com.fahmi.chatappapi.dto.request.UserVerifyRequest;
+import com.fahmi.chatappapi.dto.request.*;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
+import com.fahmi.chatappapi.dto.response.UserResponse;
 import com.fahmi.chatappapi.entity.User;
 import com.fahmi.chatappapi.exception.CustomException;
 import com.fahmi.chatappapi.mapper.UserMapper;
@@ -30,35 +28,6 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
-    @Override
-    public void register(UserRegisterRequest request) {
-        String code = String.format("%04d", new Random().nextInt(9999));
-        User user;
-
-        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            user = userRepository.findByPhoneNumber(request.getPhoneNumber())
-                    .orElseThrow(() -> new CustomException.ResourceNotFoundException("Phone number is not found."));
-            if (user.isVerified()) {
-                throw new CustomException.ConflictException("Phone number is already registered.");
-            }
-            user.setEmail(request.getEmail());
-        } else {
-            user = UserMapper.fromRegisterRequest(request);
-        }
-
-        long number = userRepository.getUsernameNumber();
-
-        user.setUsername("user" + number);
-        user.setDisplayName("user" + number);
-        user.setAvatarUrl(appConfig.getDefaultAvatarUrl());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setVerificationCode(code);
-        user.setCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
-        userRepository.save(user);
-
-        emailService.sendVerificationCode(user.getEmail(), code);
-    }
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
@@ -88,7 +57,47 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void verify(UserVerifyRequest request) {
+    public void register(UserRegisterRequest request) {
+        String code = String.format("%04d", new Random().nextInt(9999));
+        User user;
+
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                    .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
+
+            if (user.isVerified()) {
+                throw new CustomException.ConflictException("Phone number already registered.");
+            }
+
+            user.setEmail(request.getEmail());
+        } else {
+            user = UserMapper.fromRegisterRequest(request);
+            long number = userRepository.getUsernameNumber();
+
+            user.setUsername("user" + number);
+            user.setDisplayName("user" + number);
+        }
+
+        user.setAvatarUrl(appConfig.getDefaultAvatarUrl());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setVerificationCode(code);
+        user.setCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
+        emailService.sendVerificationCode(user.getEmail(), code);
+    }
+
+    @Override
+    public void resendCode(ResendCodeRequest request) {
+        String code = String.format("%04d", new Random().nextInt(9999));
+        User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
+
+        emailService.sendVerificationCode(user.getEmail(), code);
+    }
+
+    @Override
+    public UserResponse verify(UserVerifyRequest request) {
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
@@ -104,12 +113,14 @@ public class AuthServiceImpl implements AuthService {
         user.setVerificationCode(null);
         user.setCodeExpiresAt(null);
         userRepository.save(user);
+
+        return UserMapper.toResponse(user);
     }
 
     @Override
     public TokenResponse refreshToken(TokenRequest request) {
-        String username = jwtUtil.extractUsername(request.getRefreshToken());
-        User user = userRepository.findByUsername(username)
+        String id = jwtUtil.extractId(request.getRefreshToken());
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
