@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -39,9 +40,23 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new CustomException.AuthenticationException("Email or password is incorrect.");
+        if (user.getTempPassword() == null) {
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword()) ) {
+                throw new CustomException.AuthenticationException("Email or password is incorrect.");
+            }
+        } else {
+            if (user.getPasswordExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new CustomException.ConflictException("Temporary password has expired.");
+            }
+
+            if (!user.getTempPassword().equals(request.getPassword())) {
+                throw new CustomException.AuthenticationException("Email or password is incorrect.");
+            }
         }
+
+        user.setTempPassword(null);
+        user.setPasswordExpiresAt(null);
+        userRepository.save(user);
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
@@ -54,6 +69,19 @@ public class AuthServiceImpl implements AuthService {
                 .user(UserMapper.toResponse(user))
                 .tokens(tokenResponse)
                 .build();
+    }
+
+    @Override
+    public void forgotPassword(UserForgotRequest request) {
+        String tempPassword = generateTempPassword();
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
+
+        user.setTempPassword(tempPassword);
+        user.setPasswordExpiresAt(LocalDateTime.now().plusMinutes(30));
+        userRepository.save(user);
+
+        emailService.sendTempPassword(request.getEmail(), tempPassword);
     }
 
     @Override
@@ -129,5 +157,20 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+
+    public static String generateTempPassword() {
+        SecureRandom random = new SecureRandom();
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        int length = 10;
+
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
+        }
+
+        return sb.toString();
     }
 }

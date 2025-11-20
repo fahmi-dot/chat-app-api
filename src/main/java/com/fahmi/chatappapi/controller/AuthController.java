@@ -22,18 +22,25 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRegisterRequest request) {
-        authService.register(request);
-
-        return ResponseUtil.response(HttpStatus.CREATED, "User registered successfully.", HttpStatus.CREATED);
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
         UserLoginResponse response = authService.login(request);
 
         return ResponseUtil.response(HttpStatus.OK, "User logged in successfully", response);
+    }
+
+    @PostMapping("/forgot")
+    public  ResponseEntity<?> forgot(@RequestBody UserForgotRequest request) {
+        authService.forgotPassword(request);
+
+        return ResponseUtil.response(HttpStatus.OK, "Password forgot successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody UserRegisterRequest request) {
+        authService.register(request);
+
+        return ResponseUtil.response(HttpStatus.CREATED, "User registered successfully.", HttpStatus.CREATED);
     }
 
     @PostMapping("/verify")

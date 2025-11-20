@@ -8,6 +8,8 @@ import com.fahmi.chatappapi.dto.response.UserResponse;
 public interface AuthService {
     UserLoginResponse login(UserLoginRequest request);
 
+    void forgotPassword(UserForgotRequest request);
+
     void register(UserRegisterRequest request);
 
     void resendCode(ResendCodeRequest request);

@@ -13,10 +13,13 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByPhoneNumber(String phoneNumber);
 
+    Optional<User> findByEmail(String email);
+
     boolean existsByUsername(String username);
 
     boolean existsByPhoneNumber(String phoneNumber);
 
     @Query(value = "SELECT nextval('username_seq')", nativeQuery = true)
     long getUsernameNumber();
+
 }
