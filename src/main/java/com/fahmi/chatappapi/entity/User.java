@@ -44,6 +44,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "temp_password")
+    private String tempPassword;
+
+    @Column(name = "password_expires_at")
+    private LocalDateTime passwordExpiresAt;
+
     @Column(nullable = false)
     private String role;
 
