@@ -42,6 +42,10 @@ public class UserServiceImpl implements UserService {
         User user = findById(id);
 
         if (request.getUsername() != null) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new CustomException.ResourceNotFoundException("Username already exists.");
+            }
+
             user.setUsername(request.getUsername());
         }
 
