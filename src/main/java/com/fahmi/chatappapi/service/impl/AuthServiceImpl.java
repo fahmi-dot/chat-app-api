@@ -121,6 +121,10 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found."));
 
+        user.setVerificationCode(code);
+        user.setCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
         emailService.sendVerificationCode(user.getEmail(), code);
     }
 
