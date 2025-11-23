@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -29,12 +32,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserSearchResponse searchUser(String key) {
-        User user = userRepository.findByUsername(key)
-                .orElseGet(() -> userRepository.findByPhoneNumber(key)
-                        .orElseThrow(() -> new CustomException.ResourceNotFoundException("User not found.")));
+    public List<UserSearchResponse> searchUser(String key) {
+        List<User> users = userRepository.findByUsernameIsContainingIgnoreCase(key);
 
-        return UserMapper.toSearchResponse(user);
+        if (users.isEmpty()) return null;
+
+        return users.stream().map(UserMapper::toSearchResponse).collect(Collectors.toList());
     }
 
     @Override

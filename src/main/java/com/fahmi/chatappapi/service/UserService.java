@@ -5,10 +5,12 @@ import com.fahmi.chatappapi.dto.response.UserResponse;
 import com.fahmi.chatappapi.dto.response.UserSearchResponse;
 import com.fahmi.chatappapi.entity.User;
 
+import java.util.List;
+
 public interface UserService {
     UserResponse getMyProfile();
 
-    UserSearchResponse searchUser(String key);
+    List<UserSearchResponse> searchUser(String key);
 
     void updateProfile(String id, UserUpdateRequest request);
 

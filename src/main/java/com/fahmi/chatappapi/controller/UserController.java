@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(Endpoint.USER)
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class UserController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchUser(@RequestParam String key) {
-        UserSearchResponse response = userService.searchUser(key);
+        List<UserSearchResponse> response = userService.searchUser(key);
 
         return ResponseUtil.response(HttpStatus.OK, "User found.", response);
     }
