@@ -31,8 +31,8 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<RoomResponse> getChatRooms() {
-        String id = tokenHolder.getId();
-        User currentUser = userService.findById(id);
+        String currentId = tokenHolder.getId();
+        User currentUser = userService.findById(currentId);
         List<Room> rooms = roomRepository.findByParticipantsContaining(currentUser);
 
         return rooms.stream().map(room -> {
@@ -46,16 +46,25 @@ public class ChatServiceImpl implements ChatService {
 
             response.setUnreadMessagesCount(unreadMessagesCount);
 
+            response.setParticipants(response.getParticipants().stream()
+                    .filter((p) -> !p.getId().equals(currentId))
+                    .toList());
             return response;
         }).toList();
     }
 
     @Override
     public RoomResponse getChatRoomDetail(String roomId) {
+        String currentId = tokenHolder.getId();
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
 
-        return RoomMapper.toResponse(room);
+        RoomResponse response = RoomMapper.toResponse(room);
+        response.setParticipants(response.getParticipants().stream()
+                .filter((p) -> !p.getId().equals(currentId))
+                .toList());
+
+        return response;
     }
 
     @Override
