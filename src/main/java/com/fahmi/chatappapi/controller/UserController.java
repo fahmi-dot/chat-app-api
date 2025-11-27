@@ -27,17 +27,24 @@ public class UserController {
         return ResponseUtil.response(HttpStatus.OK, "My profile retrieved successfully.", response);
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(@RequestParam String query) {
+        UserSearchResponse response = userService.getUserProfile(query);
+
+        return ResponseUtil.response(HttpStatus.OK, "User profile retrieved successfully.", response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUser(@RequestParam String query) {
+        List<UserSearchResponse> response = userService.searchUser(query);
+
+        return ResponseUtil.response(HttpStatus.OK, "User found.", response);
+    }
+
     @PatchMapping("/{id}/update")
     public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody UserUpdateRequest request) {
         userService.updateProfile(id, request);
 
         return ResponseUtil.response(HttpStatus.OK, "Profile updated successfully.", HttpStatus.OK);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<?> searchUser(@RequestParam String key) {
-        List<UserSearchResponse> response = userService.searchUser(key);
-
-        return ResponseUtil.response(HttpStatus.OK, "User found.", response);
     }
 }

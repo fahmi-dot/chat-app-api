@@ -28,7 +28,15 @@ public class UserServiceImpl implements UserService {
     public UserResponse getMyProfile() {
         String id = tokenHolder.getId();
         User user = findById(id);
+
         return UserMapper.toResponse(user);
+    }
+
+    @Override
+    public UserSearchResponse getUserProfile(String username) {
+        User user = findByUsername(username);
+
+        return UserMapper.toSearchResponse(user);
     }
 
     @Override

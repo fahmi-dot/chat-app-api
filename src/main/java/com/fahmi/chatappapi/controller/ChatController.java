@@ -37,13 +37,6 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
-    @GetMapping("/rooms/{roomId}")
-    public ResponseEntity<?> getChatRoomDetail(@PathVariable String roomId) {
-        RoomResponse response = chatService.getChatRoomDetail(roomId);
-
-        return ResponseUtil.response(HttpStatus.OK, "Chat room detail retrieved successfully.", response);
-    }
-
     @PostMapping("/send")
     public void sendChatMessage(@RequestBody MessageRequest request) {
         String id = tokenHolder.getId();

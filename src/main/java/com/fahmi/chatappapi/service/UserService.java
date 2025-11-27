@@ -10,6 +10,8 @@ import java.util.List;
 public interface UserService {
     UserResponse getMyProfile();
 
+    UserSearchResponse getUserProfile(String username);
+
     List<UserSearchResponse> searchUser(String key);
 
     void updateProfile(String id, UserUpdateRequest request);

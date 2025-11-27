@@ -9,7 +9,6 @@ import java.util.List;
 public interface ChatService {
     List<RoomResponse> getChatRooms();
 
-    RoomResponse getChatRoomDetail(String roomId);
 
     MessageResponse sendChatMessage(String roomId, String content, String currentUsername);
 

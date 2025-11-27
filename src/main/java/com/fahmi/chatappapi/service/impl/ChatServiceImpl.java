@@ -54,20 +54,6 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public RoomResponse getChatRoomDetail(String roomId) {
-        String currentId = tokenHolder.getId();
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
-
-        RoomResponse response = RoomMapper.toResponse(room);
-        response.setParticipants(response.getParticipants().stream()
-                .filter((p) -> !p.getId().equals(currentId))
-                .toList());
-
-        return response;
-    }
-
-    @Override
     public MessageResponse sendChatMessage(String roomId, String content, String currentUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         Room room = roomRepository.findById(roomId)
