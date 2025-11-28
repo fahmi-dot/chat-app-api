@@ -66,7 +66,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         return UserLoginResponse.builder()
-                .user(UserMapper.toResponse(user))
                 .tokens(tokenResponse)
                 .build();
     }
