@@ -43,8 +43,8 @@ public class UserController {
 
     @PatchMapping("/{id}/update")
     public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody UserUpdateRequest request) {
-        userService.updateProfile(id, request);
+        UserResponse response = userService.updateProfile(id, request);
 
-        return ResponseUtil.response(HttpStatus.OK, "Profile updated successfully.", HttpStatus.OK);
+        return ResponseUtil.response(HttpStatus.OK, "Profile updated successfully.", response);
     }
 }

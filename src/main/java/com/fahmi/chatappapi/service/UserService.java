@@ -14,7 +14,7 @@ public interface UserService {
 
     List<UserSearchResponse> searchUser(String key);
 
-    void updateProfile(String id, UserUpdateRequest request);
+    UserResponse updateProfile(String id, UserUpdateRequest request);
 
     User findById(String id);
 

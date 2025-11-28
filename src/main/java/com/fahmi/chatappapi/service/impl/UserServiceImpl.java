@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateProfile(String id, UserUpdateRequest request) {
+    public UserResponse updateProfile(String id, UserUpdateRequest request) {
         User user = findById(id);
 
         if (request.getUsername() != null) {
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        userRepository.save(user);
+        return UserMapper.toResponse(userRepository.save(user));
     }
 
     @Override
