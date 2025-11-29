@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final TokenHolder tokenHolder;
 
     @Override
@@ -52,7 +51,12 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateProfile(String id, UserUpdateRequest request) {
         User user = findById(id);
 
-        if (request.getUsername() != null) {
+        if (!request.getDisplayName().equals(user.getDisplayName())) {
+            user.setDisplayName(request.getDisplayName());
+        }
+
+        if (!request.getUsername().isEmpty() &&
+                !request.getUsername().equals(user.getUsername())) {
             if (userRepository.existsByUsername(request.getUsername())) {
                 throw new CustomException.ResourceNotFoundException("Username already exists.");
             }
@@ -60,12 +64,8 @@ public class UserServiceImpl implements UserService {
             user.setUsername(request.getUsername());
         }
 
-        if (request.getDisplayName() != null) {
-            user.setDisplayName(request.getDisplayName());
-        }
-
-        if (request.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        if (!request.getBio().equals(user.getBio())) {
+            user.setBio(request.getBio());
         }
 
         return UserMapper.toResponse(userRepository.save(user));
