@@ -4,6 +4,7 @@ import com.fahmi.chatappapi.constant.Endpoint;
 import com.fahmi.chatappapi.dto.request.MessageRequest;
 import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
+import com.fahmi.chatappapi.dto.response.UploadMediaResponse;
 import com.fahmi.chatappapi.service.ChatService;
 import com.fahmi.chatappapi.service.UserService;
 import com.fahmi.chatappapi.util.ResponseUtil;
@@ -16,6 +17,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -37,6 +39,13 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadMedia(@RequestParam("file") MultipartFile file) {
+        UploadMediaResponse response = chatService.uploadMedia(file);
+
+        return ResponseUtil.response(HttpStatus.OK, "Upload media successfully.", response);
+    }
+
     @PostMapping("/send")
     public void sendChatMessage(@RequestBody MessageRequest request) {
         String id = tokenHolder.getId();
@@ -48,7 +57,7 @@ public class ChatController {
             roomId = chatService.getRoomId(username, request.getReceiver());
             if (roomId == null) {
                 roomId = chatService.createRoom(username, request.getReceiver());
-                response = chatService.sendChatMessage(roomId, request.getContent(), username);
+                response = chatService.sendChatMessage(roomId, request, username);
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -57,7 +66,7 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendChatMessage(roomId, request.getContent(), username);
+        response = chatService.sendChatMessage(roomId, request, username);
         response.setType("new_message");
 
         messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -73,7 +82,7 @@ public class ChatController {
             roomId = chatService.getRoomId(principal.getName(), request.getReceiver());
             if (roomId == null) {
                 roomId = chatService.createRoom(principal.getName(), request.getReceiver());
-                response = chatService.sendChatMessage(roomId, request.getContent(), principal.getName());
+                response = chatService.sendChatMessage(roomId, request, principal.getName());
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -82,7 +91,7 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendChatMessage(roomId, request.getContent(), principal.getName());
+        response = chatService.sendChatMessage(roomId, request, principal.getName());
         response.setType("new_message");
 
         messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
