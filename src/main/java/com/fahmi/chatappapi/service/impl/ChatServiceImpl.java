@@ -1,7 +1,9 @@
 package com.fahmi.chatappapi.service.impl;
 
+import com.fahmi.chatappapi.dto.request.MessageRequest;
 import com.fahmi.chatappapi.dto.response.MessageResponse;
 import com.fahmi.chatappapi.dto.response.RoomResponse;
+import com.fahmi.chatappapi.dto.response.UploadMediaResponse;
 import com.fahmi.chatappapi.entity.Message;
 import com.fahmi.chatappapi.entity.Room;
 import com.fahmi.chatappapi.entity.User;
@@ -11,10 +13,12 @@ import com.fahmi.chatappapi.mapper.RoomMapper;
 import com.fahmi.chatappapi.repository.MessageRepository;
 import com.fahmi.chatappapi.repository.RoomRepository;
 import com.fahmi.chatappapi.service.ChatService;
+import com.fahmi.chatappapi.service.CloudinaryService;
 import com.fahmi.chatappapi.service.UserService;
 import com.fahmi.chatappapi.util.TokenHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +30,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final MessageRepository messageRepository;
     private final RoomRepository roomRepository;
+    private final CloudinaryService cloudinaryService;
     private final UserService userService;
     private final TokenHolder tokenHolder;
 
@@ -54,12 +59,20 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageResponse sendChatMessage(String roomId, String content, String currentUsername) {
+    public UploadMediaResponse uploadMedia(MultipartFile file) {
+        String folderName = "hello_media";
+
+        return cloudinaryService.uploadMedia(file, folderName);
+    }
+
+    @Override
+    public MessageResponse sendChatMessage(String roomId, MessageRequest request, String currentUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
         Message message = Message.builder()
-                .content(content)
+                .content(request.getContent())
+                .mediaUrl(request.getMediaUrl())
                 .sentAt(LocalDateTime.now())
                 .isRead(false)
                 .room(room)
