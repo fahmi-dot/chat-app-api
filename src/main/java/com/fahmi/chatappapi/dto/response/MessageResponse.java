@@ -11,6 +11,7 @@ public class MessageResponse {
     private String id;
     private String roomId;
     private String content;
+    private String mediaUrl;
     private boolean isRead;
     private LocalDateTime sentAt;
     private String senderId;
