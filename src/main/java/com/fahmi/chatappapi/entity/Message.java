@@ -22,6 +22,9 @@ public class Message {
     @Column(columnDefinition = "text", nullable = false)
     private String content;
 
+    @Column(name = "media_url")
+    private String mediaUrl;
+
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
 
