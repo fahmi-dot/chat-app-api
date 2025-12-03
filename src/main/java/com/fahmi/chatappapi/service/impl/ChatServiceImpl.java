@@ -66,7 +66,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageResponse sendChatMessage(String roomId, MessageRequest request, String currentUsername) {
+    public MessageResponse sendMessage(String roomId, MessageRequest request, String currentUsername) {
         User currentUser = userService.findByUsername(currentUsername);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("Room not found."));
@@ -84,7 +84,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<MessageResponse> getChatMessages(String roomId) {
+    public List<MessageResponse> getRoomMessages(String roomId) {
         return messageRepository.findByRoomIdOrderBySentAtDesc(roomId).stream()
                 .map(MessageMapper::toResponse)
                 .toList();
@@ -101,7 +101,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public void deleteChatMessage(String messageId) {
+    public void deleteRoomMessage(String messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new CustomException.ResourceNotFoundException("Message not found."));
 

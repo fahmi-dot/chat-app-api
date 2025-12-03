@@ -47,7 +47,7 @@ public class ChatController {
     }
 
     @PostMapping("/send")
-    public void sendChatMessage(@RequestBody MessageRequest request) {
+    public void sendMessage(@RequestBody MessageRequest request) {
         String id = tokenHolder.getId();
         String username = userService.findById(id).getUsername();
         String roomId = request.getRoomId();
@@ -57,7 +57,7 @@ public class ChatController {
             roomId = chatService.getRoomId(username, request.getReceiver());
             if (roomId == null) {
                 roomId = chatService.createRoom(username, request.getReceiver());
-                response = chatService.sendChatMessage(roomId, request, username);
+                response = chatService.sendMessage(roomId, request, username);
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -66,7 +66,7 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendChatMessage(roomId, request, username);
+        response = chatService.sendMessage(roomId, request, username);
         response.setType("new_message");
 
         messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -74,7 +74,7 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/send")
-    public void sendChatMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {
+    public void sendMessage(@Payload MessageRequest request, @Header("simpUser") Principal principal) {
         String roomId = request.getRoomId();
         MessageResponse response;
 
@@ -82,7 +82,7 @@ public class ChatController {
             roomId = chatService.getRoomId(principal.getName(), request.getReceiver());
             if (roomId == null) {
                 roomId = chatService.createRoom(principal.getName(), request.getReceiver());
-                response = chatService.sendChatMessage(roomId, request, principal.getName());
+                response = chatService.sendMessage(roomId, request, principal.getName());
                 response.setType("new_room");
 
                 messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -91,7 +91,7 @@ public class ChatController {
             }
         }
 
-        response = chatService.sendChatMessage(roomId, request, principal.getName());
+        response = chatService.sendMessage(roomId, request, principal.getName());
         response.setType("new_message");
 
         messagingTemplate.convertAndSendToUser(request.getReceiver(), "/queue/notifications", response);
@@ -99,8 +99,8 @@ public class ChatController {
     }
 
     @GetMapping("/rooms/{roomId}/messages")
-    public ResponseEntity<?> getChatMessages(@PathVariable String roomId) {
-        List<MessageResponse> responses = chatService.getChatMessages(roomId);
+    public ResponseEntity<?> getRoomMessages(@PathVariable String roomId) {
+        List<MessageResponse> responses = chatService.getRoomMessages(roomId);
 
         return ResponseUtil.response(HttpStatus.OK, "Chat messages retrieved successfully.", responses);
     }
@@ -113,8 +113,8 @@ public class ChatController {
     }
 
     @DeleteMapping("/rooms/messages/{messageId}")
-    public ResponseEntity<?> deleteChatMessage(@PathVariable String messageId) {
-        chatService.deleteChatMessage(messageId);
+    public ResponseEntity<?> deleteRoomMessage(@PathVariable String messageId) {
+        chatService.deleteRoomMessage(messageId);
 
         return ResponseUtil.response(HttpStatus.OK, "Chat message deleted successfully.", HttpStatus.OK);
     }

@@ -13,13 +13,13 @@ public interface ChatService {
 
     UploadMediaResponse uploadMedia(MultipartFile file);
 
-    MessageResponse sendChatMessage(String roomId, MessageRequest request, String currentUsername);
+    MessageResponse sendMessage(String roomId, MessageRequest request, String currentUsername);
 
-    List<MessageResponse> getChatMessages(String roomId);
+    List<MessageResponse> getRoomMessages(String roomId);
 
     void markAsRead(String roomId);
 
-    void deleteChatMessage(String messageId);
+    void deleteRoomMessage(String messageId);
 
     String getRoomId(String currentUsername, String targetUsername);
 
