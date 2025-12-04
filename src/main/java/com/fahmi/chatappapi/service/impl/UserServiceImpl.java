@@ -40,11 +40,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserSearchResponse> searchUser(String key) {
+        String currentUserId = tokenHolder.getId();
         List<User> users = userRepository.findByUsernameIsContainingIgnoreCase(key);
 
         if (users.isEmpty()) return null;
 
-        return users.stream().map(UserMapper::toSearchResponse).collect(Collectors.toList());
+        return users.stream()
+                .filter(u -> !currentUserId.equals(u.getId()))
+                .map(UserMapper::toSearchResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
