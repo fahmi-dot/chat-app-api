@@ -59,6 +59,20 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public List<RoomResponse> searchChatRooms(String query) {
+        String currentId = tokenHolder.getId();
+        User currentUser = userService.findById(currentId);
+        List<Room> rooms = roomRepository.findByParticipantsContaining(currentUser);
+
+        return rooms.stream().filter(room ->
+                room.getParticipants().stream()
+                        .anyMatch(p -> p.getUsername().contains(query))
+                )
+                .map(RoomMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public UploadMediaResponse uploadMedia(MultipartFile file) {
         String folderName = "hello_media";
 

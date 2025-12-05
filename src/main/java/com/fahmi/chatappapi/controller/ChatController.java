@@ -39,6 +39,13 @@ public class ChatController {
         return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
     }
 
+    @GetMapping("/rooms/search")
+    public  ResponseEntity<?> searchChatRooms(@RequestParam String query) {
+        List<RoomResponse> response = chatService.searchChatRooms(query);
+
+        return ResponseUtil.response(HttpStatus.OK, "Chat list retrieved successfully.", response);
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<?> uploadMedia(@RequestParam("file") MultipartFile file) {
         UploadMediaResponse response = chatService.uploadMedia(file);

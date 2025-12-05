@@ -11,6 +11,8 @@ import java.util.List;
 public interface ChatService {
     List<RoomResponse> getChatRooms();
 
+    List<RoomResponse> searchChatRooms(String query);
+
     UploadMediaResponse uploadMedia(MultipartFile file);
 
     MessageResponse sendMessage(String roomId, MessageRequest request, String currentUsername);
