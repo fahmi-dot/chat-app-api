@@ -1,6 +1,7 @@
 package com.fahmi.chatappapi.service.impl;
 
 import com.fahmi.chatappapi.config.AppConfig;
+import com.fahmi.chatappapi.config.JwtConfig;
 import com.fahmi.chatappapi.dto.request.*;
 import com.fahmi.chatappapi.dto.response.TokenResponse;
 import com.fahmi.chatappapi.dto.response.UserLoginResponse;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -25,6 +27,7 @@ import java.util.Random;
 public class AuthServiceImpl implements AuthService {
 
     private final AppConfig appConfig;
+    private final JwtConfig jwtConfig;
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -63,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
         TokenResponse tokenResponse = TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .expiryAt(LocalDateTime.now().plus(Duration.ofMillis(jwtConfig.getAccessExpirationMs())))
                 .build();
 
         return UserLoginResponse.builder()
@@ -159,6 +163,7 @@ public class AuthServiceImpl implements AuthService {
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .expiryAt(LocalDateTime.now().plus(Duration.ofMillis(jwtConfig.getAccessExpirationMs())))
                 .build();
     }
 
